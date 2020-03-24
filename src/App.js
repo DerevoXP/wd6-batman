@@ -22,7 +22,7 @@ class App extends React.PureComponent {
 		super(props);
 		this.state = {
 			list: [], // список комиксов
-			watched: [], // список смотрел / не смотрел
+			watched: JSON.parse(localStorage.getItem('moviesInfo')), // список смотрел / не смотрел
 			errState: null, // состояние запроса - есть ошибка / все ок
 		}
 	}
@@ -36,13 +36,24 @@ class App extends React.PureComponent {
 			this.setState({
 				list: data || [],
 			});
-			//	console.log("DATA: ", data);
 		}).catch((e) => {
 			console.log("REQUEST ERROR: ".e);
 		});
 	}
 
+	// showStatusRender(id) {
+	// 	if (this.state.watched.indexOf(id) != -1) { // проверяем, есть ли в локалстороже такой айдишник
+	// 		return ("ПРОСМОТРЕНО")
+	// 	} else {
+	// 		return (
+	// 			"НЕ ПРОСМОТРЕНО"
+	// 		)
+	// 	}
+	// }
+
 	render() {
+
+		console.log("Почему этот трахнутый рендер отрабатывает дважды или четырежды? Где, его мать, логика?")
 
 		return (
 			<Container>
