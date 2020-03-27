@@ -6,7 +6,7 @@ import {
 } from 'reactstrap';
 
 import Err from './components/err';
-import MovieCard from './components/MovieCard';
+import MovieCard from './components/movieCard';
 
 
 class App extends React.PureComponent {
