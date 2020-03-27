@@ -1,34 +1,27 @@
 import React from 'react';
-import { CardRen } from "./components/card";
-
-
 import {
 	Container,
 	Row,
 	Col,
-	Card,
-	CardImg,
-	CardText,
-	CardBody,
-	CardTitle,
-	CardSubtitle,
-	Button,
 } from 'reactstrap';
+
+import Err from './components/err';
+import MovieCard from './components/MovieCard';
+
 
 class App extends React.PureComponent {
 
 	constructor(props) {
-
 		super(props);
+
 		this.state = {
 			list: [], // список комиксов
-			watched: JSON.parse(localStorage.getItem('moviesInfo')), // список смотрел / не смотрел
+			watched: [], // список смотрел / не смотрел
 			errState: null, // состояние запроса - есть ошибка / все ок
-		}
+		};
 	}
 
-	componentDidMount() {
-
+	componentDidMount() { // тут всегда солнечно, сучара. Не надо тут ничего трогать.
 		const movies = fetch('https://api.tvmaze.com/search/shows?q=batman');
 		movies.then((data) => {
 			return data.json();
@@ -37,37 +30,88 @@ class App extends React.PureComponent {
 				list: data || [],
 			});
 		}).catch((e) => {
-			console.log("REQUEST ERROR: ".e);
+			console.log("REQUEST ERROR: ", e);
+			this.setState({ errState: e });
 		});
+
+		if (localStorage.length === 0) { // если локалсторож пуст, то  создаём хранилище айдишников в локалстороже
+			localStorage.setItem(`moviesInfo`, JSON.stringify([]));
+		} else {
+			this.setState({ watched: JSON.parse(localStorage.getItem('moviesInfo')) });
+		};
+
 	}
 
-	// showStatusRender(id) {
-	// 	if (this.state.watched.indexOf(id) != -1) { // проверяем, есть ли в локалстороже такой айдишник
-	// 		return ("ПРОСМОТРЕНО")
-	// 	} else {
-	// 		return (
-	// 			"НЕ ПРОСМОТРЕНО"
-	// 		)
-	// 	}
-	// }
+	onChange = (id) => {
+		return this.state.watched.indexOf(id);
+	}
+
+	onChangeHandler = (id) => {	 // вызывается по нажатию кнопки смотрел/не смотрел	
+
+		let index = this.onChange(id);
+		let base = [...this.state.watched];
+		if (index !== -1) {
+			base.splice(index, 1);
+		} else {
+			base.push(id);
+		};
+		this.setState({ watched: base }, () => localStorage.setItem(`moviesInfo`, JSON.stringify(base)));
+	}
+
+	renderCard = () => {
+
+		if (this.state.list.length === 0) {
+			return null;
+		}
+
+		return this.state.list.map((item) => {
+
+			const {
+				id,
+				name = "",
+				url = "",
+				image = {},
+				summary,
+				premiered,
+			} = item.show || {}; // потрошим сведения о фильме из JSON
+
+			return <MovieCard
+				key={id}
+				id={id}
+				name={name}
+				url={url}
+				image={image.medium}
+				summary={summary}
+				premiered={premiered}
+				watched={this.onChange(id)} // если фильма нет в локалстороже, то -1
+				showList={this.onChangeHandler} // передаём в потомка метод смены статуса "просмотрено/не просмотрено" 
+			/>
+		});
+	};
 
 	render() {
 
-		console.log("Почему этот трахнутый рендер отрабатывает дважды или четырежды? Где, его мать, логика?")
+		if (this.state.errState !== null) {
+			return <Err />
+		}
 
 		return (
 			<Container>
 				<Row>
-					<Col ><h1>Batman Cartoons</h1></Col>
+					<Col><h1>Batman Movies</h1></Col>
 				</Row>
-				<div style={{
-					backgroundColor: "black",
-				}}>
-					<CardRen {...this.state.list} />
-				</div>
+				<Row>
+					<Col sm="12">
+						<div style={{ display: "flex", flexWrap: "wrap" }}>
+							{
+								this.renderCard()
+							}
+						</div>
+					</Col>
+				</Row>
 			</Container>
-		);
+		)
 	}
 }
 
-export default App; // помнится, за каким-то членом мы переносили эту строчку вверх. За каким?
+export default App;
